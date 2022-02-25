@@ -1,0 +1,116 @@
+
+
+
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8" />
+    <title></title>
+
+    <!-- Load Leaflet from CDN -->
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css"
+      integrity="sha512-xodZBNTC5n17Xt2atTPuE1HxjVMSvLVW9ocqUKLsCC5CXdbqCmblAshOMAS6/keqq/sMZMZ19scR4PsZChSR7A=="
+      crossorigin=""
+    />
+    <script
+      src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"
+      integrity="sha512-XQoYMqMTK8LvdxXYG3nZ448hOEQiglfqkJs1NOQV44cWnUrBc8PkAOcXy20w0vlaXaVUearIOBhiXZ5V3ynxwA=="
+      crossorigin=""
+    ></script>
+
+    <link
+      rel="stylesheet"
+      href="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.css"
+    />
+    <script src="https://ppete2.github.io/Leaflet.PolylineMeasure/Leaflet.PolylineMeasure.js"></script>
+
+    <!-- My Script and CSS -->
+    <link rel="stylesheet" href="./src/styles.css" />
+    <!-- <script src="./src/index.js" type="text/javascript" defer></script> -->
+
+    <style>
+      .mapdiv{
+        width: 100%;
+        height: 800px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="leafletMapid" class="mapdiv"></div>
+
+
+    <script>
+var mapOptions = {
+  center: [33.738045, 73.084488
+],
+  zoom: 10
+};
+
+//Create a map and assign it to the map div
+var map = L.map("leafletMapid", mapOptions);
+
+//  Add a baselayer
+var baselayer = L.tileLayer(
+  "https://server.arcgisonline.com/ArcGIS/rest/services/Ocean_Basemap/MapServer/tile/{z}/{y}/{x}",
+  {
+    attribution:
+      "Tiles &copy; Esri &mdash; Sources: GEBCO, NOAA, CHS, OSU, UNH, CSUMB, National Geographic, DeLorme, NAVTEQ, and Esri",
+    maxZoom: 50
+  }
+);
+
+baselayer.addTo(map);
+
+// Create polylineMeasure
+const pMeasure = L.control.polylineMeasure({
+  position: "topleft",
+  clearMeasurementsOnStop: false
+});
+pMeasure.addTo(map);
+
+map.on("polylinemeasure:finish", (currentLine) => {
+  console.log(currentLine);
+});
+
+// Some constant polyline coords:
+const line1coords = [
+  { lat: 22.156883186860703, lng: -158.95019531250003 },
+  { lat: 22.01436065310322, lng: -157.33520507812503 },
+  { lat: 21.391704731036587, lng: -156.17065429687503 },
+  { lat: 20.64306554672647, lng: -155.56640625000003 },
+  { lat: 19.342244996771804, lng: -155.33569335937503 }
+];
+const line2coords = [
+  { lat: 19.880391767822505, lng: -159.67529296875003 },
+  { lat: 17.90556881196468, lng: -156.39038085937503 }
+];
+
+// Gather all polylines into array of polyines
+const polylines = [line1coords, line2coords];
+
+// Hijack user actions to manually draw polylines
+polylines.forEach((polyline) => {
+  // toggle draw state on:
+  pMeasure._toggleMeasure();
+  // start line with first point of each polyline
+  pMeasure._startLine(polyline[0]);
+  // add subsequent points:
+  polyline.forEach((point, ind) => {
+    const latLng = L.latLng(point);
+    pMeasure._mouseMove({ latLng });
+    pMeasure._currentLine.addPoint(latLng);
+    // on last point,
+    if (ind === polyline.length - 1) {
+      pMeasure._finishPolylinePath();
+      pMeasure._toggleMeasure();
+    }
+  });
+});
+
+
+
+    </script>
+  </body>
+</html>
